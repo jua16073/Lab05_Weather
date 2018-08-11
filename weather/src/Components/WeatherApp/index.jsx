@@ -6,19 +6,28 @@ class WeatherApp extends Component {
   constructor (props){
     super(props);
     this.state = {
-      weather: "halp",
       lati: null,
       longi: null,
+      location: "Buscando",
+      temp: 0,
+      vez: 0,
     } 
   }
 
   _getlocation(){
+    const {
+      vez
+    } = this.state;
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(this._success.bind(this),this._failed)
     }
     else{
       console.log("halp");
     }
+    this.setState({
+      vez: vez+1,
+    })
+
   }
 
   _success(Position){
@@ -32,34 +41,46 @@ class WeatherApp extends Component {
       lati: lat,
       longi: long,
     });
-    console.log(this.state.lati, this.state.longi);
   }
 
   _failed(){
     console.log("failed Location");
   }
 
+  set(result){
+    this.setState({
+      location: result,
+    })  
+    console.log(this.state.weather);
+  }
+
+  setTemp(result){
+    this.setState({
+      temp: result,
+    })
+    console.log(this.state.temp);
+  }
+
   _getInfo(){
-    const info = fetch('http://history.openweathermap.org/data/2.5/history/city?lat={lati}&lon={longi}');
+    const info = fetch('http://api.openweathermap.org/data/2.5/weather?lat='+this.state.lati+'&lon='+this.state.longi+'&appid=7711357f304510f520accc3b290a183b');
     info.then(resultado => resultado.json())
     .then(result => console.log(result))
+    .then(result => this.set(result.name).bind(this))
     .catch(console.log("sad"));
   }
   
   render(){
-    this._getlocation();
-    this._getInfo();
+    if (this.state.vez <= 1){
+      this._getlocation();
+      this._getInfo();
+    }
     const {
       location,
-      weather
     } = this.state;
     return(
       <Fragment>
         <h1>Weather App</h1>
-        <h2>{location}</h2>
-        <Weather 
-          clima= {weather}/>
-        <button onClick= {this._getlocation.bind(this)}>Start</button>
+        <h2> {location} </h2>
       </Fragment>
     )
   }
